@@ -219,6 +219,29 @@ const ProductPage = () => {
     ];
   };
 
+  const handleTableAction = async (action: "call_waiter" | "request_check") => {
+  try {
+    const res = await fetch("http://localhost:5001/tables/action", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action,
+        branchId: "branch-kfc-1",  // replace with dynamic if needed
+        tableId: "687d4c8af96d4e4d9ba52da7",         // replace with the actual table id
+      }),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Unknown error");
+
+    alert(data.message);
+  } catch (err: any) {
+    alert("❌ Failed to send request: " + err.message);
+  }
+};
+
   const renderCategoryContent = (category: MenuCategory) => {
     if (expandedCategory !== category.id) return null;
 
@@ -326,10 +349,10 @@ const ProductPage = () => {
         Call Waiter
       </span>
       <button
-        onClick={() => alert("Waiter has been called")}
-        className="bg-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-red-600 transition"
+      onClick={() => handleTableAction("call_waiter")}
+      className="bg-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-red-600 transition"
       >
-        🧑‍🍳
+      🧑‍🍳
       </button>
     </div>
 
@@ -339,7 +362,7 @@ const ProductPage = () => {
         Check Please
       </span>
       <button
-        onClick={() => alert("Check requested")}
+        onClick={() => handleTableAction("request_check")}
         className="bg-yellow-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-yellow-600 transition"
       >
         💳
