@@ -172,6 +172,8 @@ const ProductPage = () => {
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const [fabOpen, setFabOpen] = useState(false);
+
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
     
@@ -301,6 +303,62 @@ const ProductPage = () => {
       />
 
       {/* <OrderSummary /> */}
+      {/* Floating Action Button */}
+{/* Floating Action Button */}
+{/* Dimmed Background Overlay */}
+{fabOpen && (
+  <div
+    className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+    onClick={() => setFabOpen(false)}
+  />
+)}
+
+<div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+  {/* Action Buttons */}
+  <div
+    className={`flex flex-col items-end gap-4 mb-4 transition-all duration-300 ${
+      fabOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
+    }`}
+  >
+    {/* Call Waiter */}
+    <div className="flex items-center gap-2">
+      <span className="text-white text-sm font-semibold drop-shadow-md bg-black/30 px-2 py-1 rounded">
+        Call Waiter
+      </span>
+      <button
+        onClick={() => alert("Waiter has been called")}
+        className="bg-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-red-600 transition"
+      >
+        🧑‍🍳
+      </button>
+    </div>
+
+    {/* Check Please */}
+    <div className="flex items-center gap-2">
+      <span className="text-white text-sm font-semibold drop-shadow-md bg-black/30 px-2 py-1 rounded">
+        Check Please
+      </span>
+      <button
+        onClick={() => alert("Check requested")}
+        className="bg-yellow-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-yellow-600 transition"
+      >
+        💳
+      </button>
+    </div>
+  </div>
+
+  {/* Main FAB Toggle */}
+  <button
+  onClick={() => setFabOpen(!fabOpen)}
+  className="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center shadow-2xl hover:scale-105 transition-transform"
+>
+  {fabOpen ? "✕" : "🔔"}
+</button>
+
+
+</div>
+
+
     </div>
   );
 };
