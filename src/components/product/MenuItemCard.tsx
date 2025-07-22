@@ -27,9 +27,9 @@ const MenuItemCard = ({ item }: MenuItemCardProps) => {
       </CardHeader>
       <CardContent className="pt-0">
         <p className="text-muted-foreground mb-4">{item.description}</p>
-        <Button className="w-full" variant="hero">
+        {/* <Button className="w-full" variant="hero">
           Add to Order
-        </Button>
+        </Button> */}
       </CardContent>
     </Card>
   );

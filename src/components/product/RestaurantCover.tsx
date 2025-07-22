@@ -14,13 +14,13 @@ const RestaurantCover = () => {
           <div className="text-white space-y-2">
             <h1 className="text-4xl md:text-5xl font-bold">Bella Vista Restaurant</h1>
             <p className="text-xl opacity-90">Italian Fine Dining Experience</p>
-            <div className="flex items-center gap-4 text-sm">
+            {/* <div className="flex items-center gap-4 text-sm">
               <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
                 ⭐ 4.8 Rating
               </Badge>
               <span>📍 Downtown • Italian Cuisine</span>
               <span>🕒 Open until 11:00 PM</span>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

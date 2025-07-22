@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { MenuCategory } from "@/data/menuData";
 import { ChevronRight } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface CategoryCardProps {
   category: MenuCategory;
@@ -9,6 +10,7 @@ interface CategoryCardProps {
 }
 
 const CategoryCard = ({ category, isExpanded, onClick }: CategoryCardProps) => {
+  const { t, i18n } = useTranslation();
   return (
     <Card 
       className={`cursor-pointer transition-all duration-300 hover:shadow-lg ${
@@ -19,13 +21,13 @@ const CategoryCard = ({ category, isExpanded, onClick }: CategoryCardProps) => {
       <div className="aspect-[4/3] overflow-hidden rounded-t-lg">
         <img 
           src={category.image} 
-          alt={category.name}
+          alt={category.names[i18n.language.toUpperCase()]}
           className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
         />
       </div>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-lg">{category.name}</h3>
+          <h3 className="font-semibold text-lg">{category.names[i18n.language.toUpperCase()]}</h3>
           <ChevronRight 
             className={`h-5 w-5 transition-transform duration-200 ${
               isExpanded ? 'rotate-90' : ''
@@ -34,8 +36,8 @@ const CategoryCard = ({ category, isExpanded, onClick }: CategoryCardProps) => {
         </div>
         <p className="text-sm text-muted-foreground mt-1">
           {category.subcategories 
-            ? `${category.subcategories.length} categories` 
-            : `${category.items?.length || 0} items`
+            ? `${category.subcategories.length} ${t('categories')}` 
+            : `${category.items?.length || 0} ${t('items')}`
           }
         </p>
       </CardContent>

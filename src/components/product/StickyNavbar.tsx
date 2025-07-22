@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { MenuCategory } from "@/data/menuData";
 import { useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 
 interface StickyNavbarProps {
   categories: MenuCategory[];
@@ -11,6 +12,7 @@ interface StickyNavbarProps {
 const StickyNavbar = ({ categories, activeCategory, onCategoryClick }: StickyNavbarProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeButtonRef = useRef<HTMLButtonElement>(null);
+const { t, i18n } = useTranslation();
 
   useEffect(() => {
     if (activeButtonRef.current && scrollContainerRef.current) {
@@ -47,7 +49,7 @@ const StickyNavbar = ({ categories, activeCategory, onCategoryClick }: StickyNav
               onClick={() => onCategoryClick(category.id)}
               className="whitespace-nowrap px-4 py-2 rounded-full transition-all duration-200"
             >
-              {category.name}
+              {category.names[i18n.language.toUpperCase()]}
             </Button>
           ))}
         </div>
