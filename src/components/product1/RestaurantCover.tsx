@@ -6,7 +6,7 @@ const RestaurantCover = () => {
     <section className="relative h-[50vh] overflow-hidden mt-16">
       <img 
         src={restaurantCover} 
-        alt="Bella Vista Restaurant" 
+        alt="" 
         className="w-full h-full object-cover"
       />
       <div className="absolute inset-0 bg-black/40 flex items-end">

@@ -11,6 +11,7 @@ import OrderSummary from "@/components/product/OrderSummary";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
+import { useRef } from "react";
 
 // import { useState, useEffect } from "react";
 // import { MenuCategory } from "@/data/menuData"; // Adjust import path
@@ -23,6 +24,8 @@ const ProductPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [itemsFetched, setItemsFetched] = useState(false);
 
+  const categoryRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
+
 
   const [fabOpen, setFabOpen] = useState(false);
 const { t, i18n } = useTranslation(); // get current language
@@ -30,6 +33,35 @@ const { t, i18n } = useTranslation(); // get current language
 const API_BASE = "https://admin.nushx.com"
 const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
   const { branchId, tableId } = useParams<{ branchId: string; tableId: string }>();
+
+  useEffect(() => {
+  const observerOptions = {
+    root: null,
+    rootMargin: "0px",
+    threshold: 0.3, // Adjust based on when you want to trigger
+  };
+
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const visibleId = Object.entries(categoryRefs.current).find(
+          ([_, el]) => el === entry.target
+        )?.[0];
+
+        if (visibleId && visibleId !== activeCategory) {
+          setActiveCategory(visibleId);
+        }
+      }
+    });
+  }, observerOptions);
+
+  const elements = Object.values(categoryRefs.current).filter(Boolean) as Element[];
+  elements.forEach((el) => observer.observe(el));
+
+  return () => {
+    elements.forEach((el) => observer.unobserve(el));
+  };
+}, [menuCategories]);
 
 
 const fetchCategories = async () => {
@@ -355,7 +387,9 @@ const renderCategoryContent = (category: MenuCategory) => {
         ) : (
           <div className="space-y-6">
             {getVisibleCategories().map((category) => (
-              <div key={category.id} id={`category-${category.id}`}>
+              <div key={category.id} id={`category-${category.id}`}
+              ref={(el) => (categoryRefs.current[category.id] = el)}
+              >
                 <div className="px-4">
                   <CategoryCard
                     category={category}
@@ -378,11 +412,10 @@ const renderCategoryContent = (category: MenuCategory) => {
 
       {/* <OrderSummary /> */}
       {/* Floating Action Button */}
-{/* Floating Action Button */}
-{/* Dimmed Background Overlay */}
+{/* FAB Overlay */}
 {fabOpen && (
   <div
-    className="fixed inset-0 bg-black bg-opacity-50 z-40 transition-opacity duration-300"
+    className="fixed inset-0 bg-black/40 z-40 backdrop-blur-sm"
     onClick={() => setFabOpen(false)}
   />
 )}
@@ -390,46 +423,40 @@ const renderCategoryContent = (category: MenuCategory) => {
 <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
   {/* Action Buttons */}
   <div
-    className={`flex flex-col items-end gap-4 mb-4 transition-all duration-300 ${
+    className={`flex flex-col items-end gap-3 mb-4 transform transition-all duration-300 ${
       fabOpen ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4 pointer-events-none"
     }`}
   >
     {/* Call Waiter */}
-    <div className="flex items-center gap-2">
-      <span className="text-white text-sm font-semibold drop-shadow-md bg-black/30 px-2 py-1 rounded">
-        {t('callWaiter')}
-      </span>
-      <button
+    <button
       onClick={() => handleTableAction("call_waiter")}
-      className="bg-red-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-red-600 transition"
-      >
-      🧑‍🍳
-      </button>
-    </div>
+      className="relative flex items-center gap-2 px-4 py-2 rounded-xl bg-black/30 shadow-lg hover:scale-105 transition-transform"
+    >
+      <img src="/icons/waiter.png" alt="Call Waiter" className="w-6 h-6" />
+      <span className="text-white font-semibold text-sm">{t("callWaiter")}</span>
+    </button>
 
-    {/* Check Please */}
-    <div className="flex items-center gap-2">
-      <span className="text-white text-sm font-semibold drop-shadow-md bg-black/30 px-2 py-1 rounded">
-        {t('checkPlease')}
-      </span>
-      <button
-        onClick={() => handleTableAction("request_check")}
-        className="bg-yellow-500 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:bg-yellow-600 transition"
-      >
-        💳
-      </button>
-    </div>
+    {/* Request Check */}
+    <button
+      onClick={() => handleTableAction("request_check")}
+      className="relative flex items-center gap-2 px-4 py-2 rounded-xl bg-black/30 shadow-lg hover:scale-105 transition-transform"
+    >
+      <img src="/icons/card.png" alt="Request Check" className="w-6 h-6" />
+      <span className="text-white font-semibold text-sm">{t("checkPlease")}</span>
+    </button>
   </div>
 
   {/* Main FAB Toggle */}
   <button
-  onClick={() => setFabOpen(!fabOpen)}
-  className="bg-primary text-white rounded-full w-16 h-16 flex items-center justify-center shadow-2xl hover:scale-105 transition-transform"
->
-  {fabOpen ? "✕" : "🔔"}
-</button>
-
-
+    onClick={() => setFabOpen(!fabOpen)}
+    className="bg-black/60 rounded-full w-12 h-12 flex items-center justify-center shadow-xxl hover:scale-110 transition-transform border-1 border-white"
+  >
+    <img
+      src={fabOpen ? "/icons/close.png" : "/icons/bell.png"}
+      alt="Toggle Actions"
+      className="w-9 h-9"
+    />
+  </button>
 </div>
 
 

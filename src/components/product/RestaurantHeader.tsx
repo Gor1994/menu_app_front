@@ -55,7 +55,7 @@ const RestaurantHeader = () => {
     // Optionally: add language switching logic here
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b">
+    <header className="fixed top-0 left-0 right-0 z-50 bg-background/30 backdrop-blur-md border-b">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <h1 className="text-xl font-bold text-primary">Bella Vista Restaurant</h1>
         
@@ -63,7 +63,7 @@ const RestaurantHeader = () => {
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-lg hover:bg-gray-200"
+            className="flex items-center gap-2 bg-black/30 px-2 py-1 rounded-lg hover:bg-gray-200"
           >
             <span className="text-xl">{flags[i18n.language]}</span>
             <FaChevronDown className="text-gray-600" />

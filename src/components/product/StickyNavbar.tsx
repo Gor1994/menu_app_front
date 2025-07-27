@@ -34,7 +34,7 @@ const { t, i18n } = useTranslation();
   }, [activeCategory]);
 
   return (
-    <div className="sticky top-16 z-40 bg-background/95 backdrop-blur-md border-b">
+    <div className="sticky top-16 z-40 bg-background/30 backdrop-blur-md border-b">
       <div 
         ref={scrollContainerRef}
         className="overflow-x-auto scrollbar-hide"
