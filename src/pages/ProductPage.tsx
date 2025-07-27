@@ -10,6 +10,8 @@ import ItemModal from "@/components/product/ItemModal";
 import OrderSummary from "@/components/product/OrderSummary";
 import axios from "axios";
 import { useTranslation } from "react-i18next";
+import { useParams } from "react-router-dom";
+
 // import { useState, useEffect } from "react";
 // import { MenuCategory } from "@/data/menuData"; // Adjust import path
 
@@ -19,20 +21,22 @@ const ProductPage = () => {
   const [selectedSubcategory, setSelectedSubcategory] = useState<SubCategory | null>(null);
   const [selectedItem, setSelectedItem] = useState<MenuItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [itemsFetched, setItemsFetched] = useState(false);
+
 
   const [fabOpen, setFabOpen] = useState(false);
 const { t, i18n } = useTranslation(); // get current language
 // const LOCALE = i18n.language || "AM";
-const BRANCH_ID = "branch-kfc-1"; // Should be dynamic if needed
-const API_BASE = "https://kfc.ater-vpn.ru"
+const API_BASE = "https://admin.nushx.com"
 const [menuCategories, setMenuCategories] = useState<MenuCategory[]>([]);
+  const { branchId, tableId } = useParams<{ branchId: string; tableId: string }>();
 
 
 const fetchCategories = async () => {
   const currentLocale = i18n.resolvedLanguage || "AM";
   try {
     const res = await axios.get(`${API_BASE}/api/menus/menu-tabs`, {
-      params: { branchId: BRANCH_ID },
+      params: { branchId: branchId },
     });
 
     const rawCategories = res.data?.categories || [];
@@ -65,37 +69,98 @@ const fetchItems = async () => {
   if (menuCategories.length === 0) return;
 
   try {
+    // const updatedCategories = await Promise.all(
+    //   menuCategories.map(async (category) => {
+    //     if (!category.subcategories.length) return category;
+
+    //     const enrichedSubcategories = await Promise.all(
+    //       category.subcategories.map(async (sub) => {
+    //         const res = await axios.get(`${API_BASE}/api/items`, {
+    //           params: {
+    //             branchId: branchId,
+    //             tab: category.id,        // AM category
+    //             subCategory: sub.id,     // AM subcategory
+    //           },
+    //         });
+
+    //         const items = res.data.map((item: any) => ({
+    //           id: item._id,
+    //           title: item.title,
+    //           description: item.description,
+    //           price: item.price,
+    //           image: `${API_BASE}/${item.photoUrl}`,
+    //         }));
+
+    //         return { ...sub, items };
+    //       })
+    //     );
+
+    //     return { ...category, subcategories: enrichedSubcategories };
+    //   })
+    // );
     const updatedCategories = await Promise.all(
-      menuCategories.map(async (category) => {
-        if (!category.subcategories.length) return category;
+  menuCategories.map(async (category) => {
+    if (category.subcategories.length === 0) {
+      // Fetch items directly for category
+      const res = await axios.get(`${API_BASE}/api/items`, {
+        params: {
+          branchId: branchId,
+          tab: category.id, // AM category
+        },
+      });
 
-        const enrichedSubcategories = await Promise.all(
-          category.subcategories.map(async (sub) => {
-            const res = await axios.get(`${API_BASE}/api/items`, {
-              params: {
-                branchId: BRANCH_ID,
-                tab: category.id,        // AM category
-                subCategory: sub.id,     // AM subcategory
-              },
-            });
+      const items = res.data.map((item: any) => ({
+        id: item._id,
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        image: `${API_BASE}/${item.photoUrl}`,
+      }));
 
-            const items = res.data.map((item: any) => ({
-              id: item._id,
-              title: item.title,
-              description: item.description,
-              price: item.price,
-              photoUrl: `${API_BASE}/${item.photoUrl}`,
-            }));
+      return { ...category, items };
+    }
 
-            return { ...sub, items };
-          })
-        );
+    // Fetch items for each subcategory
+    const enrichedSubcategories = await Promise.all(
+      category.subcategories.map(async (sub) => {
+        const res = await axios.get(`${API_BASE}/api/items`, {
+          params: {
+            branchId: branchId,
+            tab: category.id,
+            subCategory: sub.id,
+          },
+        });
 
-        return { ...category, subcategories: enrichedSubcategories };
+        // const items = res.data.map((item: any) => ({
+        //   id: item._id,
+        //   title: item.title,
+        //   description: item.description,
+        //   price: item.price,
+        //   image: `${API_BASE}/${item.photoUrl}`,
+        // }));
+        const items = res.data
+          .filter((item: any) => item.subCategory === sub.id) // ← Filter only matching subcategory items
+          .map((item: any) => ({
+            id: item._id,
+            title: item.title,
+            description: item.description,
+            price: item.price,
+            image: `${API_BASE}/${item.photoUrl}`,
+          }));
+
+        return { ...sub, items };
+
+        return { ...sub, items };
       })
     );
 
+    return { ...category, subcategories: enrichedSubcategories };
+  })
+);
+
+
     setMenuCategories(updatedCategories);
+    setItemsFetched(true)
   } catch (err) {
     console.error(t("failedToFetchItems"), err);
   }
@@ -104,8 +169,10 @@ const fetchItems = async () => {
 
 
 useEffect(() => {
-  if (menuCategories.length > 0) fetchItems();
-}, [menuCategories]); 
+  if (menuCategories.length > 0 && !itemsFetched) {
+    fetchItems();
+  }
+}, [menuCategories, itemsFetched]); 
 
   const handleCategoryClick = (categoryId: string) => {
     setActiveCategory(categoryId);
@@ -154,15 +221,15 @@ useEffect(() => {
 
   const handleTableAction = async (action: "call_waiter" | "request_check") => {
   try {
-    const res = await fetch("http://localhost:5001/tables/action", {
+    const res = await fetch("https://admin.nushx.com/api/tables/action", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         action,
-        branchId: "branch-kfc-1",  // replace with dynamic if needed
-        tableId: "687d4c8af96d4e4d9ba52da7",         // replace with the actual table id
+        branchId: branchId,  // replace with dynamic if needed
+        tableId: tableId,         // replace with the actual table id
       }),
     });
 
@@ -175,43 +242,78 @@ useEffect(() => {
   }
 };
 
-  const renderCategoryContent = (category: MenuCategory) => {
-    if (expandedCategory !== category.id) return null;
+//   const renderCategoryContent = (category: MenuCategory) => {
+//     if (expandedCategory !== category.id) return null;
 
-    return (
-      <div className="mt-4 space-y-4 animate-slide-up">
-        {category.subcategories ? (
-          <>
-            <h3 className="text-lg font-semibold px-4">{t('chooseCategory')}</h3>
-            <div className="grid grid-cols-2 gap-4 px-4">
-              {category.subcategories.map((subcategory) => (
-                <SubCategoryCard
-                  key={subcategory.id}
-                  subcategory={subcategory}
-                  onClick={() => handleSubcategoryClick(subcategory)}
-                />
-              ))}
-            </div>
-          </>
-        ) : (
-          category.items && (
-            <div className="px-4">
-              <MenuItemsList
-                items={category.items.map(item => ({
-                  id: item.id,
-                  title: item.title[i18n.language],        // <-- Use the correct language
-                  description: item.description[i18n.language],
-                  price: `${item.price}֏`,
-                  image: item.photoUrl,
-                }))}
-                onItemClick={handleItemClick}
+//     return (
+//       <div className="mt-4 space-y-4 animate-slide-up">
+//         {category.subcategories ? (
+//           <>
+//             <h3 className="text-lg font-semibold px-4">{t('chooseCategory')}</h3>
+//             <div className="grid grid-cols-2 gap-4 px-4">
+//               {category.subcategories.map((subcategory) => (
+//                 <SubCategoryCard
+//                   key={subcategory.id}
+//                   subcategory={subcategory}
+//                   onClick={() => handleSubcategoryClick(subcategory)}
+//                 />
+//               ))}
+//             </div>
+//           </>
+//         ) : (
+//           category.items && (
+//             <div className="px-4">
+//             <MenuItemsList 
+//               items={selectedSubcategory.items.map(item => ({
+//                 ...item,
+//                 title: item.title?.[i18n.language] || item.title?.AM,
+//                 description: item.description?.[i18n.language] || item.description?.AM,
+//               }))}
+//               onItemClick={handleItemClick}
+//             />
+//             </div>
+//           )
+//         )}
+//       </div>
+//     );
+//   };
+
+const renderCategoryContent = (category: MenuCategory) => {
+  if (expandedCategory !== category.id) return null;
+
+  return (
+    <div className="mt-4 space-y-4 animate-slide-up">
+      {category.subcategories?.length > 0 ? (
+        <>
+          <h3 className="text-lg font-semibold px-4">{t('chooseCategory')}</h3>
+          <div className="grid grid-cols-2 gap-4 px-4">
+            {category.subcategories.map((subcategory) => (
+              <SubCategoryCard
+                key={subcategory.id}
+                subcategory={subcategory}
+                onClick={() => handleSubcategoryClick(subcategory)}
               />
-            </div>
-          )
-        )}
-      </div>
-    );
-  };
+            ))}
+          </div>
+        </>
+      ) : (
+        category.items?.length > 0 && (
+          <div className="px-4">
+            <MenuItemsList
+              items={category.items.map(item => ({
+                ...item,
+                title: item.title?.[i18n.language] || item.title?.AM,
+                description: item.description?.[i18n.language] || item.description?.AM,
+              }))}
+              onItemClick={handleItemClick}
+            />
+          </div>
+        )
+      )}
+    </div>
+  );
+};
+
 
   return (
     <div className="min-h-screen bg-background">
@@ -242,7 +344,11 @@ useEffect(() => {
             </div>
             <h2 className="text-xl font-bold">{selectedSubcategory.name}</h2>
             <MenuItemsList 
-              items={selectedSubcategory.items} 
+              items={selectedSubcategory.items.map(item => ({
+                ...item,
+                title: item.title?.[i18n.language] || item.title?.AM,
+                description: item.description?.[i18n.language] || item.description?.AM,
+              }))}
               onItemClick={handleItemClick}
             />
           </div>

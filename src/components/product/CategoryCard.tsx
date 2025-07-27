@@ -34,12 +34,12 @@ const CategoryCard = ({ category, isExpanded, onClick }: CategoryCardProps) => {
             }`} 
           />
         </div>
-        <p className="text-sm text-muted-foreground mt-1">
+        {/* <p className="text-sm text-muted-foreground mt-1">
           {category.subcategories 
             ? `${category.subcategories.length} ${t('categories')}` 
             : `${category.items?.length || 0} ${t('items')}`
           }
-        </p>
+        </p> */}
       </CardContent>
     </Card>
   );
